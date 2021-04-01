@@ -1,0 +1,13 @@
+---
+
+# Build VMs
+- hosts: localhost
+  connection: local
+  gather_facts: true
+  vars_files:
+    - allvc.yml
+  vars:
+    backup_directory: "/git/bd-lab/esxi-backups/" #change this to wherever you want to store your backups will be date stamped folder
+  roles:
+    - roles/esxi_backup_vsphere
+

@@ -1,0 +1,37 @@
+---
+# save the ESXi configuration locally by authenticating against the vCenter and selecting the ESXi host
+
+  - name: Gather cluster info from given datacenter
+    community.vmware.vmware_cluster_info:
+      hostname: "{{ vcenter_servers.name }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      datacenter: "{{ vcenter_servers.datacenter }}"
+      validate_certs: no
+    delegate_to: localhost
+    register: cluster_info
+
+  - set_fact:
+      test: "{{cluster_info | community.general.json_query(jms_query)}}"
+    vars:
+      jms_query: 'clusters.[*.hosts[*].name]'
+
+  - set_fact:
+      cluster_hosts: "{{test|list|flatten|unique }}"
+ 
+  - debug:
+      var: item
+    with_items: "{{cluster_hosts}}"
+
+  - name: ESXI backup test
+    community.vmware.vmware_cfg_backup:
+      hostname: "{{ vcenter_servers.name }}"
+      esxi_hostname: "{{ item }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      state: saved
+      dest: "{{backup_dir}}"
+      validate_certs: no
+    with_items: "{{cluster_hosts}}"
+    delegate_to: localhost
+    ignore_errors: true

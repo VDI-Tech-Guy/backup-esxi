@@ -1,0 +1,17 @@
+---
+# tasks
+
+#hardcode timestamp into variable
+ - ansible.builtin.set_fact:
+    backup_dir: "/git/bd-lab/esxi-backups/{{ lookup('pipe','date +%Y-%m-%d') }}/"
+
+ - name: Create Directory with datestamp
+   ansible.builtin.file:
+     path: "{{backup_dir}}" 
+     state: directory
+ 
+ - name: Backup vSphere Hosts 
+   include: esxi_backup_vsphere.yml
+   with_items: "{{vcenters}}"
+   loop_control:
+     loop_var: vcenter_servers
